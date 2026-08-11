@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,11 +15,11 @@
 </head>
 <body class="bg-slate-900 text-white min-h-screen flex flex-col justify-between p-3">
 
-    <!-- Header with Logo, Name & Share Button -->
+    <!-- Header with Logo, Name, Language Selector & Share Button -->
     <header class="bg-slate-800 border border-slate-700 p-3 rounded-2xl shadow-lg flex justify-between items-center mb-3">
-        <div class="flex items-center space-x-3">
+        <div class="flex items-center space-x-2">
             <!-- App Logo Icon -->
-            <svg width="34" height="34" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="32" height="32" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="120" height="120" rx="30" fill="#2563eb"/>
                 <path d="M30 85 C 45 85, 45 45, 60 55 C 75 65, 75 35, 90 35" stroke="#22c55e" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
                 <circle cx="30" cy="85" r="6" fill="#ffffff"/>
@@ -27,10 +27,19 @@
             </svg>
             <span class="text-lg font-bold tracking-wide">Route<span class="text-green-500">Buddy</span></span>
         </div>
+        
         <div class="flex items-center space-x-2">
-            <span id="status" class="text-xs bg-yellow-500 text-black px-2.5 py-1 rounded-full font-bold">Ready</span>
+            <!-- Language Selector Dropdown -->
+            <select id="langSelect" onchange="changeLanguage()" class="bg-slate-900 text-white text-xs px-2 py-1.5 rounded-lg border border-slate-600 focus:outline-none focus:border-blue-500">
+                <option value="en">English</option>
+                <option value="hi">हिंदी (Hindi)</option>
+                <option value="ur">اردو (Urdu)</option>
+                <option value="es">Español (Spanish)</option>
+            </select>
+
+            <!-- Share Button -->
             <button onclick="shareApp()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-full font-semibold transition">
-                🔗 शेयर
+                🔗 <span id="txt-share">Share</span>
             </button>
         </div>
     </header>
@@ -39,11 +48,17 @@
     <main class="flex-1 flex flex-col justify-center items-center">
         <div class="bg-slate-800 border border-slate-700 p-3 rounded-2xl shadow-2xl w-full max-w-md">
             
+            <!-- Status Badge -->
+            <div class="flex justify-between items-center mb-2 px-1">
+                <span class="text-xs text-slate-400" id="txt-status-label">Status:</span>
+                <span id="status" class="text-xs bg-yellow-500 text-black px-2.5 py-0.5 rounded-full font-bold">Ready</span>
+            </div>
+
             <!-- Search & Destination Box -->
             <div class="mb-3">
-                <input type="text" id="destinationInput" placeholder="कहाँ जाना है? (जगह का नाम लिखें)" class="w-full bg-slate-900 text-white p-2.5 rounded-xl border border-slate-700 text-sm mb-2 focus:outline-none focus:border-green-500">
-                <button onclick="searchDestination()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl font-semibold text-sm transition shadow-md">
-                    🔍 रास्ता खोजें (Find Destination)
+                <input type="text" id="destinationInput" placeholder="Where do you want to go?" class="w-full bg-slate-900 text-white p-2.5 rounded-xl border border-slate-700 text-sm mb-2 focus:outline-none focus:border-green-500">
+                <button onclick="searchDestination()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl font-semibold text-sm transition shadow-md" id="txt-search-btn">
+                    🔍 Find Destination
                 </button>
             </div>
 
@@ -51,14 +66,14 @@
             <div id="map" class="mb-3 shadow-inner border border-slate-700"></div>
 
             <!-- Control Buttons (Tracking Start/Stop) -->
-            <button onclick="startTracking()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold transition shadow-lg mb-2 text-sm">
-                📍 ट्रैकिंग शुरू करें (Start)
+            <button onclick="startTracking()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold transition shadow-lg mb-2 text-sm" id="txt-start-btn">
+                📍 Start Tracking
             </button>
-            <button onclick="stopTracking()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold transition shadow-lg mb-2 text-sm">
-                🛑 ट्रैकिंग रोकें (Stop)
+            <button onclick="stopTracking()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold transition shadow-lg mb-2 text-sm" id="txt-stop-btn">
+                🛑 Stop Tracking
             </button>
-            <button onclick="location.reload()" class="w-full bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-xl font-semibold transition text-xs">
-                🔄 रीसेट करें
+            <button onclick="location.reload()" class="w-full bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-xl font-semibold transition text-xs" id="txt-reset-btn">
+                🔄 Reset
             </button>
         </div>
     </main>
@@ -71,7 +86,107 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        // मैप सेट करना
+        // भाषाओं का डेटा (Translations Dictionary)
+        const translations = {
+            en: {
+                share: "Share",
+                statusLabel: "Status:",
+                statusReady: "Ready",
+                statusTracking: "Tracking...",
+                statusStopped: "Stopped",
+                searchPlaceholder: "Where do you want to go?",
+                searchBtn: "🔍 Find Destination",
+                startBtn: "📍 Start Tracking",
+                stopBtn: "🛑 Stop Tracking",
+                resetBtn: "🔄 Reset",
+                alertNoQuery: "Please enter a destination name first!",
+                alertFound: "Destination found! Red pin shows the location.",
+                alertNotFound: "Destination not found, please enter a valid name.",
+                alertError: "Error finding destination. Please try again.",
+                alertGpsError: "Please allow location access: ",
+                alertNoGps: "Your browser does not support Geolocation.",
+                alertStopped: "Tracking has been stopped."
+            },
+            hi: {
+                share: "शेयर",
+                statusLabel: "स्थिति:",
+                statusReady: "तैयार",
+                statusTracking: "ट्रैक हो रहा है...",
+                statusStopped: "रुक गया",
+                searchPlaceholder: "कहाँ जाना है? जगह का नाम लिखें",
+                searchBtn: "🔍 रास्ता खोजें",
+                startBtn: "📍 ट्रैकिंग शुरू करें",
+                stopBtn: "🛑 ट्रैकिंग रोकें",
+                resetBtn: "🔄 रीसेट करें",
+                alertNoQuery: "कृपया पहले किसी जगह का नाम लिखें!",
+                alertFound: "जगह मिल गई है! लाल पिन उस जगह को दिखा रहा है।",
+                alertNotFound: "जगह नहीं मिली, कृपया सही नाम लिखें।",
+                alertError: "खोजने में कुछ दिक्कत आई। कृपया दोबारा प्रयास करें।",
+                alertGpsError: "लोकेशन की अनुमति दें: ",
+                alertNoGps: "आपका ब्राउज़र Geolocation को सपोर्ट नहीं करता।",
+                alertStopped: "ट्रैकिंग रोक दी गई है।"
+            },
+            ur: {
+                share: "شیئر کریں",
+                statusLabel: "حالت:",
+                statusReady: "تیار",
+                statusTracking: "ٹریکنگ جاری ہے...",
+                statusStopped: "رک گیا",
+                searchPlaceholder: "کہاں جانا ہے؟ جگہ کا نام لکھیں",
+                searchBtn: "🔍 منزل تلاش کریں",
+                startBtn: "📍 ٹریکنگ شروع کریں",
+                stopBtn: "🛑 ٹریکنگ بند کریں",
+                resetBtn: "🔄 ری سیٹ کریں",
+                alertNoQuery: "براہ کرم پہلے کسی جگہ کا نام درج کریں!",
+                alertFound: "منزل مل گئی ہے! سرخ پن جگہ کو ظاہر کر رہا ہے۔",
+                alertNotFound: "منزل نہیں ملی، براہ کرم درست نام درج کریں۔",
+                alertError: "تلاش کرنے میں کچھ مسئلہ ہوا۔ دوبارہ کوشش کریں۔",
+                alertGpsError: "مقام کی اجازت دیں: ",
+                alertNoGps: "آپ کا براؤزر جیو لوکیشن کو سپورٹ نہیں کرتا۔",
+                alertStopped: "ٹریکنگ روک دی گئی ہے۔"
+            },
+            es: {
+                share: "Compartir",
+                statusLabel: "Estado:",
+                statusReady: "Listo",
+                statusTracking: "Rastreando...",
+                statusStopped: "Detenido",
+                searchPlaceholder: "¿A dónde quieres ir?",
+                searchBtn: "🔍 Buscar Destino",
+                startBtn: "📍 Iniciar Rastreo",
+                stopBtn: "🛑 Detener Rastreo",
+                resetBtn: "🔄 Reiniciar",
+                alertNoQuery: "¡Por favor ingresa un nombre de destino primero!",
+                labelFound: "¡Destino encontrado! El pin rojo muestra la ubicación.",
+                alertNotFound: "Destino no encontrado, ingresa un nombre válido.",
+                alertError: "Error al buscar el destino. Inténtalo de nuevo.",
+                alertGpsError: "Permite el acceso a la ubicación: ",
+                alertNoGps: "Tu navegador no admite geolocalización.",
+                alertStopped: "El rastreo se ha detenido."
+            }
+        };
+
+        let currentLang = 'en';
+
+        function changeLanguage() {
+            currentLang = document.getElementById('langSelect').value;
+            const t = translations[currentLang];
+
+            document.getElementById('txt-share').innerText = t.share;
+            document.getElementById('txt-status-label').innerText = t.statusLabel;
+            document.getElementById('destinationInput').placeholder = t.searchPlaceholder;
+            document.getElementById('txt-search-btn').innerText = t.searchBtn;
+            document.getElementById('txt-start-btn').innerText = t.startBtn;
+            document.getElementById('txt-stop-btn').innerText = t.stopBtn;
+            document.getElementById('txt-reset-btn').innerText = t.resetBtn;
+            
+            const statusEl = document.getElementById('status');
+            if(statusEl.innerText.includes("Ready") || statusEl.innerText.includes("तैयार") || statusEl.innerText.includes("تیار") || statusEl.innerText.includes("Listo")) {
+                statusEl.innerText = t.statusReady;
+            }
+        }
+
+        // मैप सेटअप
         const map = L.map('map').setView([28.6139, 77.2090], 15);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
@@ -83,9 +198,10 @@
         let destMarker = null;
 
         function startTracking() {
+            const t = translations[currentLang];
             if (navigator.geolocation) {
-                document.getElementById('status').innerText = "Tracking...";
-                document.getElementById('status').className = "text-xs bg-green-500 text-black px-2.5 py-1 rounded-full font-bold animate-pulse";
+                document.getElementById('status').innerText = t.statusTracking;
+                document.getElementById('status').className = "text-xs bg-green-500 text-black px-2.5 py-0.5 rounded-full font-bold animate-pulse";
                 
                 watchId = navigator.geolocation.watchPosition(
                     (pos) => {
@@ -103,30 +219,31 @@
                         }
                     },
                     (error) => {
-                        alert("लोकेशन की अनुमति दें: " + error.message);
+                        alert(t.alertGpsError + error.message);
                     },
                     { enableHighAccuracy: true }
                 );
             } else {
-                alert("आपका ब्राउज़र Geolocation को सपोर्ट नहीं करता।");
+                alert(t.alertNoGps);
             }
         }
 
         function stopTracking() {
+            const t = translations[currentLang];
             if (watchId !== null) {
                 navigator.geolocation.clearWatch(watchId);
                 watchId = null;
-                document.getElementById('status').innerText = "Stopped";
-                document.getElementById('status').className = "text-xs bg-red-500 text-white px-2.5 py-1 rounded-full font-bold";
-                alert("ट्रैकिंग रोक दी गई है।");
+                document.getElementById('status').innerText = t.statusStopped;
+                document.getElementById('status').className = "text-xs bg-red-500 text-white px-2.5 py-0.5 rounded-full font-bold";
+                alert(t.alertStopped);
             }
         }
 
-        // जगह खोजने का फंक्शन (Nominatim Free API)
         function searchDestination() {
+            const t = translations[currentLang];
             const query = document.getElementById('destinationInput').value;
             if(!query) {
-                alert("कृपया पहले किसी जगह का नाम लिखें!");
+                alert(t.alertNoQuery);
                 return;
             }
 
@@ -154,13 +271,13 @@
                                 })
                             }).addTo(map);
                         }
-                        alert("जगह मिल गई है! लाल पिन उस जगह को दिखा रहा है।");
+                        alert(t.alertFound);
                     } else {
-                        alert("जगह नहीं मिली, कृपया सही नाम लिखें।");
+                        alert(t.alertNotFound);
                     }
                 })
                 .catch(err => {
-                    alert("खोजने में कुछ दिक्कत आई। कृपया दोबारा प्रयास करें।");
+                    alert(t.alertError);
                 });
         }
 
@@ -168,11 +285,11 @@
             if (navigator.share) {
                 navigator.share({
                     title: 'RouteBuddy',
-                    text: 'देखें मेरा नया लाइव रूट ट्रैकर ऐप RouteBuddy! अपनी यात्रा को ट्रैक करने के लिए इसे इस्तेमाल करें:',
+                    text: 'Check out my new live route tracker app RouteBuddy!',
                     url: window.location.href,
                 }).catch((error) => console.log('Sharing failed', error));
             } else {
-                alert("लिंक: " + window.location.href);
+                alert("Link: " + window.location.href);
             }
         }
     </script>
