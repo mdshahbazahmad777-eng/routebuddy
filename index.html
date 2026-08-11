@@ -10,31 +10,40 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #map { height: 300px; width: 100%; border-radius: 12px; }
+        #map { height: 280px; width: 100%; border-radius: 12px; }
     </style>
 </head>
 <body class="bg-slate-900 text-white min-h-screen flex flex-col justify-between p-3">
 
-    <!-- Header with Logo, Name, Language Selector & Share Button -->
+    <!-- Header with Menu (Three Lines), Logo, Name, Language & Share -->
     <header class="bg-slate-800 border border-slate-700 p-3 rounded-2xl shadow-lg flex justify-between items-center mb-3">
         <div class="flex items-center space-x-2">
+            <!-- Three Lines / Menu Button -->
+            <button onclick="toggleMenu()" class="text-slate-300 hover:text-white p-1 focus:outline-none" title="Menu">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+
             <!-- App Logo Icon -->
-            <svg width="32" height="32" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="30" height="30" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="120" height="120" rx="30" fill="#2563eb"/>
                 <path d="M30 85 C 45 85, 45 45, 60 55 C 75 65, 75 35, 90 35" stroke="#22c55e" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
                 <circle cx="30" cy="85" r="6" fill="#ffffff"/>
                 <circle cx="90" cy="35" r="6" fill="#ef4444"/>
             </svg>
-            <span class="text-lg font-bold tracking-wide">Route<span class="text-green-500">Buddy</span></span>
+            <span class="text-base font-bold tracking-wide">Route<span class="text-green-500">Buddy</span></span>
         </div>
         
         <div class="flex items-center space-x-2">
             <!-- Language Selector Dropdown -->
-            <select id="langSelect" onchange="changeLanguage()" class="bg-slate-900 text-white text-xs px-2 py-1.5 rounded-lg border border-slate-600 focus:outline-none focus:border-blue-500">
+            <select id="langSelect" onchange="changeLanguage()" class="bg-slate-900 text-white text-xs px-2 py-1.5 rounded-lg border border-slate-600 focus:outline-none focus:border-blue-500 font-semibold cursor-pointer">
                 <option value="en">English</option>
-                <option value="hi">हिंदी (Hindi)</option>
-                <option value="ur">اردو (Urdu)</option>
-                <option value="es">Español (Spanish)</option>
+                <option value="hi">हिंदी</option>
+                <option value="ur">اردو</option>
+                <option value="es">Español</option>
             </select>
 
             <!-- Share Button -->
@@ -43,6 +52,17 @@
             </button>
         </div>
     </header>
+
+    <!-- Hidden Menu Drawer (For Future Features) -->
+    <div id="sideMenu" class="hidden bg-slate-800 border border-slate-700 p-3 rounded-xl mb-3 text-sm">
+        <p class="font-bold text-green-400 mb-2">⚙️ Menu & Settings</p>
+        <ul class="space-y-1.5 text-xs text-slate-300">
+            <li class="cursor-pointer hover:text-white" onclick="alert('Coming soon: Saved Routes')">📁 Saved Routes</li>
+            <li class="cursor-pointer hover:text-white" onclick="alert('Coming soon: Offline Mode')">📶 Offline Mode</li>
+            <li class="cursor-pointer hover:text-white" onclick="alert('RouteBuddy v1.0 - Built by you!')">ℹ️ About App</li>
+        </ul>
+        <!-- FUTURE_FEATURES_HOOK: Add more menu items or settings here later -->
+    </div>
 
     <!-- Main Content Area -->
     <main class="flex-1 flex flex-col justify-center items-center">
@@ -54,11 +74,11 @@
                 <span id="status" class="text-xs bg-yellow-500 text-black px-2.5 py-0.5 rounded-full font-bold">Ready</span>
             </div>
 
-            <!-- Search & Destination Box -->
+            <!-- Search & Destination Box (With Working Button) -->
             <div class="mb-3">
                 <input type="text" id="destinationInput" placeholder="Where do you want to go?" class="w-full bg-slate-900 text-white p-2.5 rounded-xl border border-slate-700 text-sm mb-2 focus:outline-none focus:border-green-500">
-                <button onclick="searchDestination()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl font-semibold text-sm transition shadow-md" id="txt-search-btn">
-                    🔍 Find Destination
+                <button onclick="searchDestination()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-semibold text-sm transition shadow-md flex justify-center items-center space-x-2">
+                    <span id="txt-search-btn">🔍 Find Destination</span>
                 </button>
             </div>
 
@@ -66,10 +86,10 @@
             <div id="map" class="mb-3 shadow-inner border border-slate-700"></div>
 
             <!-- Control Buttons (Tracking Start/Stop) -->
-            <button onclick="startTracking()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold transition shadow-lg mb-2 text-sm" id="txt-start-btn">
+            <button onclick="startTracking()" class="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl font-bold transition shadow-lg mb-2 text-sm" id="txt-start-btn">
                 📍 Start Tracking
             </button>
-            <button onclick="stopTracking()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold transition shadow-lg mb-2 text-sm" id="txt-stop-btn">
+            <button onclick="stopTracking()" class="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-bold transition shadow-lg mb-2 text-sm" id="txt-stop-btn">
                 🛑 Stop Tracking
             </button>
             <button onclick="location.reload()" class="w-full bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-xl font-semibold transition text-xs" id="txt-reset-btn">
@@ -157,7 +177,7 @@
                 stopBtn: "🛑 Detener Rastreo",
                 resetBtn: "🔄 Reiniciar",
                 alertNoQuery: "¡Por favor ingresa un nombre de destino primero!",
-                labelFound: "¡Destino encontrado! El pin rojo muestra la ubicación.",
+                alertFound: "¡Destino encontrado! El pin rojo muestra la ubicación.",
                 alertNotFound: "Destino no encontrado, ingresa un nombre válido.",
                 alertError: "Error al buscar el destino. Inténtalo de nuevo.",
                 alertGpsError: "Permite el acceso a la ubicación: ",
@@ -181,8 +201,18 @@
             document.getElementById('txt-reset-btn').innerText = t.resetBtn;
             
             const statusEl = document.getElementById('status');
-            if(statusEl.innerText.includes("Ready") || statusEl.innerText.includes("तैयार") || statusEl.innerText.includes("تیار") || statusEl.innerText.includes("Listo")) {
+            if(statusEl.innerText === translations.en.statusReady || statusEl.innerText === translations.hi.statusReady || statusEl.innerText === translations.ur.statusReady || statusEl.innerText === translations.es.statusReady) {
                 statusEl.innerText = t.statusReady;
+            }
+        }
+
+        // Toggle Side Menu (Three Lines)
+        function toggleMenu() {
+            const menu = document.getElementById('sideMenu');
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+            } else {
+                menu.classList.add('hidden');
             }
         }
 
@@ -292,6 +322,8 @@
                 alert("Link: " + window.location.href);
             }
         }
+
+        // FUTURE_FEATURES_JS: You can write additional custom JavaScript functions here later
     </script>
 </body>
 </html>
