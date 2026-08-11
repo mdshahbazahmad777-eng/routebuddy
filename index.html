@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteBuddy - Your Journey, Your Guide</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white h-screen flex flex-col justify-between">
+
+    <!-- Header with Logo and App Name -->
+    <header class="bg-slate-800 border-b border-slate-700 p-4 shadow-md flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <!-- Mini Logo Icon -->
+            <svg width="36" height="36" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="120" height="120" rx="30" fill="#2563eb"/>
+                <path d="M30 85 C 45 85, 45 45, 60 55 C 75 65, 75 35, 90 35" stroke="#22c55e" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="30" cy="85" r="6" fill="#ffffff"/>
+                <circle cx="90" cy="35" r="6" fill="#ef4444"/>
+            </svg>
+            <span class="text-xl font-bold tracking-wide">Route<span class="text-green-500">Buddy</span></span>
+        </div>
+        <div class="flex items-center space-x-2">
+            <span id="status" class="text-xs bg-yellow-500 text-black px-2.5 py-1 rounded-full font-bold">Ready</span>
+            <!-- Share Button -->
+            <button onclick="shareApp()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-full font-semibold transition flex items-center space-x-1">
+                <span>🔗 शेयर</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content / Dashboard -->
+    <main class="flex-1 flex flex-col justify-center items-center p-4">
+        <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-2xl max-w-md w-full text-center">
+            
+            <!-- Big Logo Display inside App -->
+            <div class="flex justify-center mb-4">
+                <svg width="80" height="80" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="120" height="120" rx="30" fill="#2563eb"/>
+                    <path d="M30 85 C 45 85, 45 45, 60 55 C 75 65, 75 35, 90 35" stroke="#22c55e" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="30" cy="85" r="6" fill="#ffffff"/>
+                    <circle cx="90" cy="35" r="6" fill="#ef4444"/>
+                </svg>
+            </div>
+
+            <h2 class="text-xl font-bold mb-1">सफर शुरू करें</h2>
+            <p class="text-slate-400 text-sm mb-6">RouteBuddy आपकी लाइव लोकेशन ट्रैक करेगा और आपके रास्ते की पूरी लाइन बनाएगा।</p>
+            
+            <button onclick="startTracking()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold transition shadow-lg mb-3">
+                📍 ट्रैकिंग शुरू करें (Start)
+            </button>
+            <button onclick="stopTracking()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold transition shadow-lg">
+                🛑 ट्रैकिंग रोकें (Stop)
+            </button>
+        </div>
+    </main>
+
+    <!-- Footer / Monetization Space -->
+    <footer class="bg-slate-800 border-t border-slate-700 p-3 text-center text-xs text-slate-500">
+        <p>RouteBuddy © 2026 | Powered for Real Users</p>
+    </footer>
+
+    <script>
+        let watchId = null;
+
+        function startTracking() {
+            if (navigator.geolocation) {
+                document.getElementById('status').innerText = "Tracking...";
+                document.getElementById('status').className = "text-xs bg-green-500 text-black px-2.5 py-1 rounded-full font-bold animate-pulse";
+                
+                watchId = navigator.geolocation.watchPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        console.log(`Live Location - Lat: ${lat}, Lng: ${lng}`);
+                    },
+                    (error) => {
+                        alert("लोकेशन की अनुमति दें: " + error.message);
+                    },
+                    { enableHighAccuracy: true }
+                );
+            } else {
+                alert("आपका ब्राउज़र Geolocation को सपोर्ट नहीं करता।");
+            }
+        }
+
+        function stopTracking() {
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+                document.getElementById('status').innerText = "Stopped";
+                document.getElementById('status').className = "text-xs bg-red-500 text-white px-2.5 py-1 rounded-full font-bold";
+                alert("ट्रैकिंग रोक दी गई है।");
+            }
+        }
+
+        function shareApp() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'RouteBuddy',
+                    text: 'देखें मेरा नया लाइव रूट ट्रैकर ऐप RouteBuddy! अपनी यात्रा को ट्रैक करने के लिए इसे इस्तेमाल करें:',
+                    url: window.location.href,
+                }).catch((error) => console.log('Sharing failed', error));
+            } else {
+                alert("लिंक कॉपी कर लिया गया है या शेयर का विकल्प उपलब्ध नहीं है!");
+            }
+        }
+    </script>
+</body>
+</html>
