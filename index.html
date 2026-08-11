@@ -2,41 +2,127 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>RouteBuddy - Live Tracking</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteBuddy - Your Journey, Your Guide</title>
     <!-- Leaflet Map CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>#map { height: 400px; width: 100%; border-radius: 15px; }</style>
+    <style>
+        #map { height: 350px; width: 100%; border-radius: 15px; }
+    </style>
 </head>
-<body class="bg-slate-900 text-white p-4">
+<body class="bg-slate-900 text-white min-h-screen flex flex-col justify-between p-4">
 
-    <h1 class="text-2xl font-bold text-center mb-4">Route<span class="text-green-500">Buddy</span></h1>
-    
-    <!-- Map Container -->
-    <div id="map" class="mb-4 shadow-lg border-2 border-slate-700"></div>
+    <!-- Header with Logo, Name & Share Button -->
+    <header class="bg-slate-800 border border-slate-700 p-3 rounded-2xl shadow-lg flex justify-between items-center mb-4">
+        <div class="flex items-center space-x-3">
+            <!-- App Logo Icon -->
+            <svg width="36" height="36" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="120" height="120" rx="30" fill="#2563eb"/>
+                <path d="M30 85 C 45 85, 45 45, 60 55 C 75 65, 75 35, 90 35" stroke="#22c55e" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="30" cy="85" r="6" fill="#ffffff"/>
+                <circle cx="90" cy="35" r="6" fill="#ef4444"/>
+            </svg>
+            <span class="text-xl font-bold tracking-wide">Route<span class="text-green-500">Buddy</span></span>
+        </div>
+        <div class="flex items-center space-x-2">
+            <span id="status" class="text-xs bg-yellow-500 text-black px-2.5 py-1 rounded-full font-bold">Ready</span>
+            <!-- Share Button -->
+            <button onclick="shareApp()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-full font-semibold transition">
+                🔗 शेयर
+            </button>
+        </div>
+    </header>
 
-    <button onclick="startTracking()" class="w-full bg-green-600 py-3 rounded-xl font-bold mb-2">📍 ट्रैकिंग शुरू करें</button>
-    <button onclick="location.reload()" class="w-full bg-slate-700 py-3 rounded-xl font-bold">🔄 रीसेट करें</button>
+    <!-- Main Content / Map Area -->
+    <main class="flex-1 flex flex-col justify-center items-center">
+        <div class="bg-slate-800 border border-slate-700 p-4 rounded-2xl shadow-2xl w-full max-w-md">
+            
+            <!-- Map Container -->
+            <div id="map" class="mb-4 shadow-inner border border-slate-700"></div>
+
+            <!-- Control Buttons -->
+            <button onclick="startTracking()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold transition shadow-lg mb-2">
+                📍 ट्रैकिंग शुरू करें (Start)
+            </button>
+            <button onclick="stopTracking()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold transition shadow-lg mb-2">
+                🛑 ट्रैकिंग रोकें (Stop)
+            </button>
+            <button onclick="location.reload()" class="w-full bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-xl font-semibold transition text-sm">
+                🔄 रीसेट करें
+            </button>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center text-xs text-slate-500 mt-4">
+        <p>RouteBuddy © 2026 | Real-time Route Tracker</p>
+    </footer>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         // मैप सेट करना
-        const map = L.map('map').setView([28.6139, 77.2090], 13); // दिल्ली का लोकेशन
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        const map = L.map('map').setView([28.6139, 77.2090], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+        }).addTo(map);
 
-        let routeLine = L.polyline([], {color: 'green', weight: 5}).addTo(map);
+        let routeLine = L.polyline([], {color: '#22c55e', weight: 6}).addTo(map);
+        let watchId = null;
+        let userMarker = null;
 
         function startTracking() {
-            navigator.geolocation.watchPosition((pos) => {
-                const lat = pos.coords.latitude;
-                const lng = pos.coords.longitude;
-                const newLatLng = [lat, lng];
+            if (navigator.geolocation) {
+                document.getElementById('status').innerText = "Tracking...";
+                document.getElementById('status').className = "text-xs bg-green-500 text-black px-2.5 py-1 rounded-full font-bold animate-pulse";
+                
+                watchId = navigator.geolocation.watchPosition(
+                    (pos) => {
+                        const lat = pos.coords.latitude;
+                        const lng = pos.coords.longitude;
+                        const newLatLng = [lat, lng];
 
-                map.setView(newLatLng, 15);
-                routeLine.addLatLng(newLatLng);
-                L.marker(newLatLng).addTo(map); // जहाँ-जहाँ जाएगा, वहां निशान लगेगा
-            }, null, {enableHighAccuracy: true});
+                        map.setView(newLatLng, 17);
+                        routeLine.addLatLng(newLatLng);
+
+                        if (userMarker) {
+                            userMarker.setLatLng(newLatLng);
+                        } else {
+                            userMarker = L.marker(newLatLng).addTo(map);
+                        }
+                    },
+                    (error) => {
+                        alert("लोकेशन की अनुमति दें: " + error.message);
+                    },
+                    { enableHighAccuracy: true }
+                );
+            } else {
+                alert("आपका ब्राउज़र Geolocation को सपोर्ट नहीं करता।");
+            }
+        }
+
+        function stopTracking() {
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+                document.getElementById('status').innerText = "Stopped";
+                document.getElementById('status').className = "text-xs bg-red-500 text-white px-2.5 py-1 rounded-full font-bold";
+                alert("ट्रैकिंग रोक दी गई है।");
+            }
+        }
+
+        function shareApp() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'RouteBuddy',
+                    text: 'देखें मेरा नया लाइव रूट ट्रैकर ऐप RouteBuddy! अपनी यात्रा को ट्रैक करने के लिए इसे इस्तेमाल करें:',
+                    url: window.location.href,
+                }).catch((error) => console.log('Sharing failed', error));
+            } else {
+                alert("लिंक: " + window.location.href);
+            }
         }
     </script>
 </body>
