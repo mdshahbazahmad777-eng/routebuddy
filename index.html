@@ -45,7 +45,12 @@
                 <circle cx="30" cy="85" r="6" fill="#ffffff"/>
                 <circle cx="90" cy="35" r="6" fill="#ef4444"/>
             </svg>
-            <span class="text-base font-bold tracking-wide">RouteBuddy <span class="text-green-400 text-xs bg-green-900/60 px-1.5 py-0.5 rounded-md border border-green-700">Live</span></span>
+            
+            <!-- App Name: Route (White) & Buddy (Green) with Distinct Live Badge -->
+            <span class="text-base font-bold tracking-wide flex items-center space-x-1.5">
+                <span><span class="text-white">Route</span><span class="text-emerald-400">Buddy</span></span>
+                <span class="text-[10px] bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/50 shadow-sm font-semibold tracking-wider">LIVE</span>
+            </span>
         </div>
         
         <div class="flex items-center space-x-2">
@@ -66,7 +71,7 @@
 
     <!-- Hidden Menu Drawer (For Future Features) -->
     <div id="sideMenu" class="hidden bg-slate-800 border border-slate-700 p-3 rounded-xl mb-2 text-sm">
-        <p class="font-bold text-green-400 mb-2">⚙️ Menu & Settings</p>
+        <p class="font-bold text-emerald-400 mb-2">⚙️ Menu & Settings</p>
         <ul class="space-y-1.5 text-xs text-slate-300">
             <li class="cursor-pointer hover:text-white" onclick="alert('Coming soon: Saved Routes')">📁 Saved Routes</li>
             <li class="cursor-pointer hover:text-white" onclick="alert('Coming soon: Offline Mode')">📶 Offline Mode</li>
@@ -81,8 +86,8 @@
             <!-- New Feature: Mini Status & Live Indicator Bar -->
             <div class="grid grid-cols-2 gap-2 mb-2 bg-slate-900/80 p-2 rounded-xl border border-slate-700/60 text-xs">
                 <div class="flex items-center space-x-1.5">
-                    <span class="w-2 h-2 rounded-full bg-green-500 animate-ping"></span>
-                    <span class="text-slate-300 font-medium">GPS: <strong class="text-green-400">High Accuracy</strong></span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                    <span class="text-slate-300 font-medium">GPS: <strong class="text-emerald-400">High Accuracy</strong></span>
                 </div>
                 <div class="text-right text-slate-400 font-medium">
                     Mode: <strong class="text-blue-400">Walking 🚶‍♂️</strong>
@@ -97,7 +102,7 @@
 
             <!-- Search & Destination Box (With Working Button) -->
             <div class="mb-2">
-                <input type="text" id="destinationInput" placeholder="Where do you want to go?" class="w-full bg-slate-900 text-white p-2.5 rounded-xl border border-slate-700 text-sm mb-2 focus:outline-none focus:border-green-500">
+                <input type="text" id="destinationInput" placeholder="Where do you want to go?" class="w-full bg-slate-900 text-white p-2.5 rounded-xl border border-slate-700 text-sm mb-2 focus:outline-none focus:border-emerald-500">
                 <button onclick="searchDestination()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-semibold text-sm transition shadow-md flex justify-center items-center space-x-2">
                     <span id="txt-search-btn">🔍 Find Destination</span>
                 </button>
@@ -110,7 +115,7 @@
             <div class="grid grid-cols-2 gap-2 mb-2 bg-slate-900 p-2.5 rounded-xl border border-slate-700 text-center">
                 <div>
                     <span class="text-[10px] text-slate-400 block" id="txt-distance-label">Distance</span>
-                    <strong id="total-distance" class="text-sm text-green-400">0.00 km</strong>
+                    <strong id="total-distance" class="text-sm text-emerald-400">0.00 km</strong>
                 </div>
                 <div>
                     <span class="text-[10px] text-slate-400 block" id="txt-speed-label">Current Speed</span>
@@ -119,7 +124,7 @@
             </div>
 
             <!-- Control Buttons (Tracking Start/Stop) -->
-            <button onclick="startTracking()" class="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl font-bold transition shadow-lg mb-2 text-sm" id="txt-start-btn">
+            <button onclick="startTracking()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold transition shadow-lg mb-2 text-sm" id="txt-start-btn">
                 📍 Start Tracking
             </button>
             <button onclick="stopTracking()" class="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-bold transition shadow-lg mb-2 text-sm" id="txt-stop-btn">
@@ -263,7 +268,7 @@
 
         let latlngs = [];
         let totalDistance = 0;
-        let routeLine = L.polyline([], {color: '#22c55e', weight: 6}).addTo(map);
+        let routeLine = L.polyline([], {color: '#10b981', weight: 6}).addTo(map);
         let watchId = null;
         let userMarker = null;
         let destMarker = null;
@@ -304,21 +309,20 @@
             const t = translations[currentLang];
             if (navigator.geolocation) {
                 document.getElementById('status').innerText = t.statusTracking;
-                document.getElementById('status').className = "text-xs bg-green-500 text-black px-2.5 py-0.5 rounded-full font-bold animate-pulse";
+                document.getElementById('status').className = "text-xs bg-emerald-500 text-black px-2.5 py-0.5 rounded-full font-bold animate-pulse";
                 
                 watchId = navigator.geolocation.watchPosition(
                     (pos) => {
                         const lat = pos.coords.latitude;
                         const lng = pos.coords.longitude;
                         let speedMs = pos.coords.speed;
-                        // Fix speed jitter: if speed is null or very low, make it 0
                         let speedKmh = (speedMs && speedMs > 0.3) ? (speedMs * 3.6).toFixed(1) : 0;
                         const newLatLng = [lat, lng];
 
                         if (latlngs.length > 0) {
                             const lastPoint = latlngs[latlngs.length - 1];
                             const dist = calculateDistance(lastPoint[0], lastPoint[1], lat, lng);
-                            if (dist > 0.001) { // Filter micro-movements/jitter indoors
+                            if (dist > 0.001) {
                                 totalDistance += dist;
                                 latlngs.push(newLatLng);
                                 localStorage.setItem('routebuddy_live_path', JSON.stringify(latlngs));
@@ -425,7 +429,7 @@
     <!-- Footer -->
     <footer class="text-center text-xs text-slate-400 mt-2 p-2 bg-slate-800 rounded-xl border border-slate-700">
         <p>RouteBuddy Live © 2026 | Real-time Route Tracker</p>
-        <p class="text-green-400 font-semibold mt-1">⚡ Powered by Eagle Network Sbz</p>
+        <p class="text-emerald-400 font-semibold mt-1">⚡ Powered by Eagle Network Sbz</p>
     </footer>
 </body>
 </html>
