@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RouteBuddy - Your Journey, Your Guide</title>
+    <title>RouteBuddy Live - Your Journey, Your Guide</title>
     <link rel="manifest" href="manifest.json">
     <!-- Leaflet Map CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #map { height: 280px; width: 100%; border-radius: 12px; }
+        #map { height: 260px; width: 100%; border-radius: 12px; }
         /* Custom Moving Icon Style for Walking Person */
         .moving-marker {
             background: #ffffff;
@@ -27,7 +27,7 @@
 <body class="bg-slate-900 text-white min-h-screen flex flex-col justify-between p-3">
 
     <!-- Header with Menu (Three Lines), Logo, Name, Language & Share -->
-    <header class="bg-slate-800 border border-slate-700 p-3 rounded-2xl shadow-lg flex justify-between items-center mb-3">
+    <header class="bg-slate-800 border border-slate-700 p-3 rounded-2xl shadow-lg flex justify-between items-center mb-2">
         <div class="flex items-center space-x-2">
             <!-- Three Lines / Menu Button -->
             <button onclick="toggleMenu()" class="text-slate-300 hover:text-white p-1 focus:outline-none" title="Menu">
@@ -45,7 +45,7 @@
                 <circle cx="30" cy="85" r="6" fill="#ffffff"/>
                 <circle cx="90" cy="35" r="6" fill="#ef4444"/>
             </svg>
-            <span class="text-base font-bold tracking-wide">Route<span class="text-green-500">Buddy</span></span>
+            <span class="text-base font-bold tracking-wide">RouteBuddy <span class="text-green-400 text-xs bg-green-900/60 px-1.5 py-0.5 rounded-md border border-green-700">Live</span></span>
         </div>
         
         <div class="flex items-center space-x-2">
@@ -65,12 +65,12 @@
     </header>
 
     <!-- Hidden Menu Drawer (For Future Features) -->
-    <div id="sideMenu" class="hidden bg-slate-800 border border-slate-700 p-3 rounded-xl mb-3 text-sm">
+    <div id="sideMenu" class="hidden bg-slate-800 border border-slate-700 p-3 rounded-xl mb-2 text-sm">
         <p class="font-bold text-green-400 mb-2">⚙️ Menu & Settings</p>
         <ul class="space-y-1.5 text-xs text-slate-300">
             <li class="cursor-pointer hover:text-white" onclick="alert('Coming soon: Saved Routes')">📁 Saved Routes</li>
             <li class="cursor-pointer hover:text-white" onclick="alert('Coming soon: Offline Mode')">📶 Offline Mode</li>
-            <li class="cursor-pointer hover:text-white" onclick="alert('RouteBuddy v1.0 - Built by you!')">ℹ️ About App</li>
+            <li class="cursor-pointer hover:text-white" onclick="alert('RouteBuddy Live v1.1 - Built by you!')">ℹ️ About App</li>
         </ul>
     </div>
 
@@ -78,6 +78,17 @@
     <main class="flex-1 flex flex-col justify-center items-center">
         <div class="bg-slate-800 border border-slate-700 p-3 rounded-2xl shadow-2xl w-full max-w-md">
             
+            <!-- New Feature: Mini Status & Live Indicator Bar -->
+            <div class="grid grid-cols-2 gap-2 mb-2 bg-slate-900/80 p-2 rounded-xl border border-slate-700/60 text-xs">
+                <div class="flex items-center space-x-1.5">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-ping"></span>
+                    <span class="text-slate-300 font-medium">GPS: <strong class="text-green-400">High Accuracy</strong></span>
+                </div>
+                <div class="text-right text-slate-400 font-medium">
+                    Mode: <strong class="text-blue-400">Walking 🚶‍♂️</strong>
+                </div>
+            </div>
+
             <!-- Status Badge -->
             <div class="flex justify-between items-center mb-2 px-1">
                 <span class="text-xs text-slate-400" id="txt-status-label">Status:</span>
@@ -85,7 +96,7 @@
             </div>
 
             <!-- Search & Destination Box (With Working Button) -->
-            <div class="mb-3">
+            <div class="mb-2">
                 <input type="text" id="destinationInput" placeholder="Where do you want to go?" class="w-full bg-slate-900 text-white p-2.5 rounded-xl border border-slate-700 text-sm mb-2 focus:outline-none focus:border-green-500">
                 <button onclick="searchDestination()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-semibold text-sm transition shadow-md flex justify-center items-center space-x-2">
                     <span id="txt-search-btn">🔍 Find Destination</span>
@@ -93,10 +104,10 @@
             </div>
 
             <!-- Map Container -->
-            <div id="map" class="mb-3 shadow-inner border border-slate-700"></div>
+            <div id="map" class="mb-2 shadow-inner border border-slate-700"></div>
 
             <!-- Live Stats Panel (Distance & Speed added) -->
-            <div class="grid grid-cols-2 gap-2 mb-3 bg-slate-900 p-2.5 rounded-xl border border-slate-700 text-center">
+            <div class="grid grid-cols-2 gap-2 mb-2 bg-slate-900 p-2.5 rounded-xl border border-slate-700 text-center">
                 <div>
                     <span class="text-[10px] text-slate-400 block" id="txt-distance-label">Distance</span>
                     <strong id="total-distance" class="text-sm text-green-400">0.00 km</strong>
@@ -123,13 +134,12 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        // भाषाओं का डेटा (Translations Dictionary)
         const translations = {
             en: {
                 share: "Share",
                 statusLabel: "Status:",
                 statusReady: "Ready",
-                statusTracking: "Tracking...",
+                statusTracking: "Tracking Live...",
                 statusStopped: "Stopped",
                 searchPlaceholder: "Where do you want to go?",
                 searchBtn: "🔍 Find Destination",
@@ -150,7 +160,7 @@
                 share: "शेयर",
                 statusLabel: "स्थिति:",
                 statusReady: "तैयार",
-                statusTracking: "ट्रैक हो रहा है...",
+                statusTracking: "लाइव ट्रैक हो रहा है...",
                 statusStopped: "रुक गया",
                 searchPlaceholder: "कहाँ जाना है? जगह का नाम लिखें",
                 searchBtn: "🔍 रास्ता खोजें",
@@ -171,7 +181,7 @@
                 share: "شیئر کریں",
                 statusLabel: "حالت:",
                 statusReady: "تیار",
-                statusTracking: "ٹریکنگ جاری ہے...",
+                statusTracking: "لائیو ٹریکنگ جاری ہے...",
                 statusStopped: "رک گیا",
                 searchPlaceholder: "کہاں جانا ہے؟ جگہ کا نام لکھیں",
                 searchBtn: "🔍 منزل تلاش کریں",
@@ -192,7 +202,7 @@
                 share: "Compartir",
                 statusLabel: "Estado:",
                 statusReady: "Listo",
-                statusTracking: "Rastreando...",
+                statusTracking: "Rastreando En Vivo...",
                 statusStopped: "Detenido",
                 searchPlaceholder: "¿A dónde quieres ir?",
                 searchBtn: "🔍 Buscar Destino",
@@ -233,20 +243,17 @@
             }
         }
 
-        // Toggle Side Menu (Three Lines)
         function toggleMenu() {
             const menu = document.getElementById('sideMenu');
             menu.classList.toggle('hidden');
         }
 
-        // मैप सेटअप (Clear Tiles and High Clarity CartoDB/OpenStreetMap)
         const map = L.map('map').setView([28.6139, 77.2090], 16);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             maxZoom: 19,
             attribution: '&copy; OpenStreetMap contributors & CARTO'
         }).addTo(map);
 
-        // Walking Person Moving Icon
         const personIcon = L.divIcon({
             className: 'moving-marker',
             html: '🚶‍♂️',
@@ -261,19 +268,16 @@
         let userMarker = null;
         let destMarker = null;
 
-        // Load saved route from LocalStorage so line never disappears on refresh or background close
         function loadSavedRoute() {
-            const savedData = localStorage.getItem('routebuddy_path');
+            const savedData = localStorage.getItem('routebuddy_live_path');
             if (savedData) {
                 try {
                     latlngs = JSON.parse(savedData);
                     if (latlngs.length > 0) {
                         routeLine.setLatLngs(latlngs);
-                        totalDistance = parseFloat(localStorage.getItem('routebuddy_distance') || '0');
+                        totalDistance = parseFloat(localStorage.getItem('routebuddy_live_distance') || '0');
                         document.getElementById('total-distance').innerText = totalDistance.toFixed(2) + ' km';
                         map.setView(latlngs[latlngs.length - 1], 17);
-                        
-                        // Set marker at last position
                         userMarker = L.marker(latlngs[latlngs.length - 1], { icon: personIcon }).addTo(map);
                     }
                 } catch(e) {
@@ -284,7 +288,6 @@
 
         loadSavedRoute();
 
-        // Calculate distance between two coordinates in Kilometers
         function calculateDistance(lat1, lon1, lat2, lon2) {
             const R = 6371; 
             const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -307,27 +310,24 @@
                     (pos) => {
                         const lat = pos.coords.latitude;
                         const lng = pos.coords.longitude;
-                        const speedMs = pos.coords.speed;
-                        const speedKmh = speedMs ? (speedMs * 3.6).toFixed(1) : 0;
+                        let speedMs = pos.coords.speed;
+                        // Fix speed jitter: if speed is null or very low, make it 0
+                        let speedKmh = (speedMs && speedMs > 0.3) ? (speedMs * 3.6).toFixed(1) : 0;
                         const newLatLng = [lat, lng];
 
-                        // Calculate distance from previous point
                         if (latlngs.length > 0) {
                             const lastPoint = latlngs[latlngs.length - 1];
                             const dist = calculateDistance(lastPoint[0], lastPoint[1], lat, lng);
-                            if (dist > 0.001) { // ignore jitter < 1 meter
+                            if (dist > 0.001) { // Filter micro-movements/jitter indoors
                                 totalDistance += dist;
                                 latlngs.push(newLatLng);
-
-                                // Save permanently to LocalStorage to prevent loss on background/call/screen-off
-                                localStorage.setItem('routebuddy_path', JSON.stringify(latlngs));
-                                localStorage.setItem('routebuddy_distance', totalDistance);
+                                localStorage.setItem('routebuddy_live_path', JSON.stringify(latlngs));
+                                localStorage.setItem('routebuddy_live_distance', totalDistance);
                             }
                         } else {
                             latlngs.push(newLatLng);
                         }
 
-                        // Update UI stats
                         document.getElementById('total-distance').innerText = totalDistance.toFixed(2) + ' km';
                         document.getElementById('current-speed').innerText = speedKmh + ' km/h';
 
@@ -362,8 +362,8 @@
         }
 
         function resetTrackingData() {
-            localStorage.removeItem('routebuddy_path');
-            localStorage.removeItem('routebuddy_distance');
+            localStorage.removeItem('routebuddy_live_path');
+            localStorage.removeItem('routebuddy_live_distance');
             location.reload();
         }
 
@@ -412,8 +412,8 @@
         function shareApp() {
             if (navigator.share) {
                 navigator.share({
-                    title: 'RouteBuddy',
-                    text: 'Check out my new live route tracker app RouteBuddy!',
+                    title: 'RouteBuddy Live',
+                    text: 'Check out my live route tracker app RouteBuddy Live!',
                     url: window.location.href,
                 }).catch((error) => console.log('Sharing failed', error));
             } else {
@@ -422,9 +422,9 @@
         }
     </script>
 
-    <!-- Footer with Powered by Eagle Network Sbz -->
+    <!-- Footer -->
     <footer class="text-center text-xs text-slate-400 mt-2 p-2 bg-slate-800 rounded-xl border border-slate-700">
-        <p>RouteBuddy © 2026 | Real-time Route Tracker</p>
+        <p>RouteBuddy Live © 2026 | Real-time Route Tracker</p>
         <p class="text-green-400 font-semibold mt-1">⚡ Powered by Eagle Network Sbz</p>
     </footer>
 </body>
