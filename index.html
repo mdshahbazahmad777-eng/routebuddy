@@ -11,6 +11,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         #map { height: 280px; width: 100%; border-radius: 12px; }
+        /* Custom Moving Icon Style for Walking Person */
+        .moving-marker {
+            background: #ffffff;
+            border: 3px solid #2563eb;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body class="bg-slate-900 text-white min-h-screen flex flex-col justify-between p-3">
@@ -61,7 +72,6 @@
             <li class="cursor-pointer hover:text-white" onclick="alert('Coming soon: Offline Mode')">📶 Offline Mode</li>
             <li class="cursor-pointer hover:text-white" onclick="alert('RouteBuddy v1.0 - Built by you!')">ℹ️ About App</li>
         </ul>
-        <!-- FUTURE_FEATURES_HOOK: Add more menu items or settings here later -->
     </div>
 
     <!-- Main Content Area -->
@@ -85,6 +95,18 @@
             <!-- Map Container -->
             <div id="map" class="mb-3 shadow-inner border border-slate-700"></div>
 
+            <!-- Live Stats Panel (Distance & Speed added) -->
+            <div class="grid grid-cols-2 gap-2 mb-3 bg-slate-900 p-2.5 rounded-xl border border-slate-700 text-center">
+                <div>
+                    <span class="text-[10px] text-slate-400 block" id="txt-distance-label">Distance</span>
+                    <strong id="total-distance" class="text-sm text-green-400">0.00 km</strong>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-400 block" id="txt-speed-label">Current Speed</span>
+                    <strong id="current-speed" class="text-sm text-sky-400">0 km/h</strong>
+                </div>
+            </div>
+
             <!-- Control Buttons (Tracking Start/Stop) -->
             <button onclick="startTracking()" class="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl font-bold transition shadow-lg mb-2 text-sm" id="txt-start-btn">
                 📍 Start Tracking
@@ -92,16 +114,11 @@
             <button onclick="stopTracking()" class="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-bold transition shadow-lg mb-2 text-sm" id="txt-stop-btn">
                 🛑 Stop Tracking
             </button>
-            <button onclick="location.reload()" class="w-full bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-xl font-semibold transition text-xs" id="txt-reset-btn">
+            <button onclick="resetTrackingData()" class="w-full bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-xl font-semibold transition text-xs" id="txt-reset-btn">
                 🔄 Reset
             </button>
         </div>
     </main>
-
-    <!-- Footer -->
-    <footer class="text-center text-xs text-slate-500 mt-2">
-        <p>RouteBuddy © 2026 | Real-time Route Tracker</p>
-    </footer>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -119,6 +136,8 @@
                 startBtn: "📍 Start Tracking",
                 stopBtn: "🛑 Stop Tracking",
                 resetBtn: "🔄 Reset",
+                distanceLabel: "Distance",
+                speedLabel: "Current Speed",
                 alertNoQuery: "Please enter a destination name first!",
                 alertFound: "Destination found! Red pin shows the location.",
                 alertNotFound: "Destination not found, please enter a valid name.",
@@ -138,6 +157,8 @@
                 startBtn: "📍 ट्रैकिंग शुरू करें",
                 stopBtn: "🛑 ट्रैकिंग रोकें",
                 resetBtn: "🔄 रीसेट करें",
+                distanceLabel: "दूरी",
+                speedLabel: "वर्तमान गति",
                 alertNoQuery: "कृपया पहले किसी जगह का नाम लिखें!",
                 alertFound: "जगह मिल गई है! लाल पिन उस जगह को दिखा रहा है।",
                 alertNotFound: "जगह नहीं मिली, कृपया सही नाम लिखें।",
@@ -157,6 +178,8 @@
                 startBtn: "📍 ٹریکنگ شروع کریں",
                 stopBtn: "🛑 ٹریکنگ بند کریں",
                 resetBtn: "🔄 ری سیٹ کریں",
+                distanceLabel: "فاصلہ",
+                speedLabel: "موجودہ رفتار",
                 alertNoQuery: "براہ کرم پہلے کسی جگہ کا نام درج کریں!",
                 alertFound: "منزل مل گئی ہے! سرخ پن جگہ کو ظاہر کر رہا ہے۔",
                 alertNotFound: "منزل نہیں ملی، براہ کرم درست نام درج کریں۔",
@@ -176,6 +199,8 @@
                 startBtn: "📍 Iniciar Rastreo",
                 stopBtn: "🛑 Detener Rastreo",
                 resetBtn: "🔄 Reiniciar",
+                distanceLabel: "Distancia",
+                speedLabel: "Velocidad Actual",
                 alertNoQuery: "¡Por favor ingresa un nombre de destino primero!",
                 alertFound: "¡Destino encontrado! El pin rojo muestra la ubicación.",
                 alertNotFound: "Destino no encontrado, ingresa un nombre válido.",
@@ -199,6 +224,8 @@
             document.getElementById('txt-start-btn').innerText = t.startBtn;
             document.getElementById('txt-stop-btn').innerText = t.stopBtn;
             document.getElementById('txt-reset-btn').innerText = t.resetBtn;
+            document.getElementById('txt-distance-label').innerText = t.distanceLabel;
+            document.getElementById('txt-speed-label').innerText = t.speedLabel;
             
             const statusEl = document.getElementById('status');
             if(statusEl.innerText === translations.en.statusReady || statusEl.innerText === translations.hi.statusReady || statusEl.innerText === translations.ur.statusReady || statusEl.innerText === translations.es.statusReady) {
@@ -209,23 +236,66 @@
         // Toggle Side Menu (Three Lines)
         function toggleMenu() {
             const menu = document.getElementById('sideMenu');
-            if (menu.classList.contains('hidden')) {
-                menu.classList.remove('hidden');
-            } else {
-                menu.classList.add('hidden');
-            }
+            menu.classList.toggle('hidden');
         }
 
-        // मैप सेटअप
-        const map = L.map('map').setView([28.6139, 77.2090], 15);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        // मैप सेटअप (Clear Tiles and High Clarity CartoDB/OpenStreetMap)
+        const map = L.map('map').setView([28.6139, 77.2090], 16);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors & CARTO'
         }).addTo(map);
 
+        // Walking Person Moving Icon
+        const personIcon = L.divIcon({
+            className: 'moving-marker',
+            html: '🚶‍♂️',
+            iconSize: [36, 36],
+            iconAnchor: [18, 18]
+        });
+
+        let latlngs = [];
+        let totalDistance = 0;
         let routeLine = L.polyline([], {color: '#22c55e', weight: 6}).addTo(map);
         let watchId = null;
         let userMarker = null;
         let destMarker = null;
+
+        // Load saved route from LocalStorage so line never disappears on refresh or background close
+        function loadSavedRoute() {
+            const savedData = localStorage.getItem('routebuddy_path');
+            if (savedData) {
+                try {
+                    latlngs = JSON.parse(savedData);
+                    if (latlngs.length > 0) {
+                        routeLine.setLatLngs(latlngs);
+                        totalDistance = parseFloat(localStorage.getItem('routebuddy_distance') || '0');
+                        document.getElementById('total-distance').innerText = totalDistance.toFixed(2) + ' km';
+                        map.setView(latlngs[latlngs.length - 1], 17);
+                        
+                        // Set marker at last position
+                        userMarker = L.marker(latlngs[latlngs.length - 1], { icon: personIcon }).addTo(map);
+                    }
+                } catch(e) {
+                    console.error("Error loading saved route", e);
+                }
+            }
+        }
+
+        loadSavedRoute();
+
+        // Calculate distance between two coordinates in Kilometers
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; 
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
 
         function startTracking() {
             const t = translations[currentLang];
@@ -237,21 +307,43 @@
                     (pos) => {
                         const lat = pos.coords.latitude;
                         const lng = pos.coords.longitude;
+                        const speedMs = pos.coords.speed;
+                        const speedKmh = speedMs ? (speedMs * 3.6).toFixed(1) : 0;
                         const newLatLng = [lat, lng];
 
+                        // Calculate distance from previous point
+                        if (latlngs.length > 0) {
+                            const lastPoint = latlngs[latlngs.length - 1];
+                            const dist = calculateDistance(lastPoint[0], lastPoint[1], lat, lng);
+                            if (dist > 0.001) { // ignore jitter < 1 meter
+                                totalDistance += dist;
+                                latlngs.push(newLatLng);
+
+                                // Save permanently to LocalStorage to prevent loss on background/call/screen-off
+                                localStorage.setItem('routebuddy_path', JSON.stringify(latlngs));
+                                localStorage.setItem('routebuddy_distance', totalDistance);
+                            }
+                        } else {
+                            latlngs.push(newLatLng);
+                        }
+
+                        // Update UI stats
+                        document.getElementById('total-distance').innerText = totalDistance.toFixed(2) + ' km';
+                        document.getElementById('current-speed').innerText = speedKmh + ' km/h';
+
                         map.setView(newLatLng, 17);
-                        routeLine.addLatLng(newLatLng);
+                        routeLine.setLatLngs(latlngs);
 
                         if (userMarker) {
                             userMarker.setLatLng(newLatLng);
                         } else {
-                            userMarker = L.marker(newLatLng).addTo(map);
+                            userMarker = L.marker(newLatLng, { icon: personIcon }).addTo(map);
                         }
                     },
                     (error) => {
                         alert(t.alertGpsError + error.message);
                     },
-                    { enableHighAccuracy: true }
+                    { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
                 );
             } else {
                 alert(t.alertNoGps);
@@ -267,6 +359,12 @@
                 document.getElementById('status').className = "text-xs bg-red-500 text-white px-2.5 py-0.5 rounded-full font-bold";
                 alert(t.alertStopped);
             }
+        }
+
+        function resetTrackingData() {
+            localStorage.removeItem('routebuddy_path');
+            localStorage.removeItem('routebuddy_distance');
+            location.reload();
         }
 
         function searchDestination() {
@@ -322,10 +420,9 @@
                 alert("Link: " + window.location.href);
             }
         }
-
-        // FUTURE_FEATURES_JS: You can write additional custom JavaScript functions here later
     </script>
-<!-- Footer with Powered by Eagle Network Sbz -->
+
+    <!-- Footer with Powered by Eagle Network Sbz -->
     <footer class="text-center text-xs text-slate-400 mt-2 p-2 bg-slate-800 rounded-xl border border-slate-700">
         <p>RouteBuddy © 2026 | Real-time Route Tracker</p>
         <p class="text-green-400 font-semibold mt-1">⚡ Powered by Eagle Network Sbz</p>
