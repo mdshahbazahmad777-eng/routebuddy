@@ -1,13 +1,13 @@
 {
-  "name": "RouteBuddy",
+  "name": "RouteBuddy Live",
   "short_name": "RouteBuddy",
-  "start_url": "./",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#2563eb",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3177/3177440.png",
+      "src": "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
       "sizes": "192x192",
       "type": "image/png"
     }
