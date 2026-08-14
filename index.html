@@ -429,5 +429,29 @@
         <p>RouteBuddy Live © 2026 | Real-time Route Tracker</p>
         <p class="text-emerald-400 font-semibold mt-1">⚡ Powered by Eagle Network Sbz</p>
     </footer>
+<!-- Welcome Splash Screen Start -->
+<div id="welcome-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #000000; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 99999; transition: opacity 0.5s ease;">
+    
+    <!-- Tera Logo -->
+    <img src="https://i.postimg.cc/wBRs4cyt/IMG-20260814-WA0002.jpg" alt="Route Buddy Live Logo" style="width: 120px; height: 120px; border-radius: 24px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+    
+    <!-- Welcome Text -->
+    <h1 style="color: #ffffff; font-family: sans-serif; font-size: 28px; margin: 0 0 10px 0; text-align: center;">नमस्ते! स्वागत है</h1>
+    <h2 style="color: #00ffcc; font-family: sans-serif; font-size: 20px; margin: 0 0 15px 0; text-align: center;">Route Buddy Live में</h2>
+    <p style="color: #aaaaaa; font-family: sans-serif; font-size: 14px; text-align: center; margin: 0;">आपकी यात्रा अब होगी और भी आसान...</p>
+
+</div>
+
+<script>
+    // Ye code 2.5 sekund baad welcome screen ko apne aap hata dega aur asli app khol dega
+    setTimeout(function() {
+        const welcomeScreen = document.getElementById('welcome-screen');
+        welcomeScreen.style.opacity = '0';
+        setTimeout(function() {
+            welcomeScreen.style.display = 'none';
+        }, 500);
+    }, 2500);
+</script>
+<!-- Welcome Splash Screen End -->
 </body>
 </html>
