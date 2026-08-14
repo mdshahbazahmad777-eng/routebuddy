@@ -4,8 +4,9 @@
   "description": "A live route tracking and navigation companion app.",
   "start_url": "https://routebuddy-seven.vercel.app/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "id": "com.routebuddylive.app",
   "icons": [
     {
       "src": "https://img.sanishtech.com/u/62d7e997ef435082a482fde7423fb28d.png",
