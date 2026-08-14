@@ -1,14 +1,14 @@
 {
   "name": "Route Buddy Live",
-  "short_name": "RouteBuddy",
+  "short_name": "Routebuddylive",
   "description": "A live route tracking and navigation companion app.",
-  "start_url": "/",
+  "start_url": "https://routebuddy-seven.vercel.app/",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
   "icons": [
     {
-      "src": "https://i.postimg.cc/wBRs4cyt/IMG-20260814-WA0002.jpg",
+      "src": "https://img.sanishtech.com/u/62d7e997ef435082a482fde7423fb28d.png",
       "sizes": "512x512",
       "type": "image/png"
     }
