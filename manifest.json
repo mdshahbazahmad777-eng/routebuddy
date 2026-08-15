@@ -3,7 +3,7 @@
   "short_name": "Routebuddylive",
   "description": "A live route tracking and navigation companion app.",
   "start_url": "https://routebuddy-seven.vercel.app/",
-  "display": "standalone",
+  "display": "fullscreen",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
   "id": "com.routebuddylive.app",
