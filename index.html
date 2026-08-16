@@ -3,349 +3,192 @@
 <head>
     <link rel="manifest" href="/manifest.json">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RouteBuddy Live - Your Journey, Your Guide</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RouteBuddy Live - Fullscreen Navigation</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #map { height: 260px; width: 100%; border-radius: 12px; }
+        body, html { height: 100%; margin: 0; padding: 0; background-color: #0f172a; overflow: hidden; font-family: system-ui, -apple-system, sans-serif; }
+        #map { height: 100vh; width: 100vw; position: absolute; top: 0; left: 0; z-index: 1; }
         .moving-marker {
             background: #ffffff;
             border: 3px solid #2563eb;
             border-radius: 50%;
-            box-shadow: 0 0 10px rgba(0,0,0,0.6);
+            box-shadow: 0 0 15px rgba(0,0,0,0.8);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            font-size: 18px;
         }
         @keyframes loadLine {
             from { width: 0%; }
             to { width: 100%; }
         }
+        /* Glassmorphism Floating UI Elements */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
     </style>
 </head>
-<body class="bg-slate-900 text-white min-h-screen flex flex-col justify-between p-3">
+<body class="text-white">
 
-    <!-- Premium Animated Splash / Welcome Screen -->
-    <div id="welcome-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000000; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999999; transition: opacity 0.8s ease;">
-        <img src="https://i.postimg.cc/wBRs4cyt/IMG-20260814-WA0002.jpg" alt="Logo" style="width: 110px; height: 110px; border-radius: 22px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.6);">
-        <h1 style="color: #ffffff; font-family: sans-serif; font-size: 26px; font-weight: bold; margin: 0;">Route Buddy Live</h1>
-        <p style="color: #2563eb; font-family: sans-serif; font-size: 14px; margin: 8px 0 20px 0;">Live Route Tracking & Navigation</p>
-        
-        <!-- Animated Green Loading Line -->
-        <div style="width: 180px; height: 4px; background: #222; border-radius: 2px; overflow: hidden;">
-            <div style="height: 100%; background: #22c55e; width: 0%; animation: loadLine 2.2s forwards;"></div>
+    <!-- Premium Dark Splash / Welcome Screen -->
+    <div id="welcome-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0b0f19; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999999; transition: opacity 0.8s ease;">
+        <img src="https://i.postimg.cc/wBRs4cyt/IMG-20260814-WA0002.jpg" alt="Logo" style="width: 100px; height: 100px; border-radius: 24px; margin-bottom: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.7); border: 2px solid #2563eb;">
+        <h1 style="color: #ffffff; font-size: 24px; font-weight: bold; margin: 0;">Route Buddy Live</h1>
+        <p style="color: #38bdf8; font-size: 13px; margin: 6px 0 25px 0;">Next-Gen Live Navigation</p>
+        <div style="width: 160px; height: 4px; background: #1e293b; border-radius: 2px; overflow: hidden;">
+            <div style="height: 100%; background: #22c55e; width: 0%; animation: loadLine 2s forwards;"></div>
         </div>
-
-        <p style="position: absolute; bottom: 35px; color: #777; font-family: sans-serif; font-size: 12px; font-weight: 500;">By Eagle Network Sbz</p>
+        <p style="position: absolute; bottom: 35px; color: #64748b; font-size: 11px; font-weight: 500;">By Eagle Network Sbz</p>
     </div>
 
-    <!-- Header with Menu, Logo, Name, Language & Share -->
-    <header class="bg-slate-800 border border-slate-700 p-3 rounded-2xl shadow-lg flex justify-between items-center mb-2">
-        <div class="flex items-center space-x-2">
-            <button onclick="toggleMenu()" class="text-slate-300 hover:text-white p-1 focus:outline-none" title="Menu">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="3" y1="12" x2="21" y2="12"></line>
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
-            </button>
+    <!-- FULL SCREEN MAP -->
+    <div id="map"></div>
 
-            <svg width="30" height="30" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="120" height="120" rx="30" fill="#2563eb"/>
-                <path d="M30 85 C 45 85, 45 45, 60 55 C 75 65, 75 35, 90 35" stroke="#22c55e" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="30" cy="85" r="6" fill="#ffffff"/>
-                <circle cx="90" cy="35" r="6" fill="#ef4444"/>
-            </svg>
-            
-            <span class="text-base font-bold tracking-wide flex items-center space-x-1.5">
-                <span><span class="text-white">Route</span><span class="text-emerald-400">Buddy</span></span>
-                <span class="text-[10px] bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/50 shadow-sm font-semibold tracking-wider">LIVE</span>
+    <!-- TOP FLOATING BAR (Search & Area Name) -->
+    <div class="absolute top-3 left-3 right-3 z-10 flex flex-col space-y-2">
+        <div class="glass-panel p-2.5 rounded-2xl shadow-2xl flex items-center space-x-2">
+            <button onclick="toggleMenu()" class="text-slate-300 hover:text-white p-1 focus:outline-none">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+            <input type="text" id="destinationInput" placeholder="Search destination or place..." class="w-full bg-transparent text-white text-sm focus:outline-none px-1 placeholder-slate-400">
+            <button onclick="searchDestination()" class="bg-blue-600 hover:bg-blue-700 text-xs px-3 py-2 rounded-xl font-semibold transition">🔍</button>
+        </div>
+
+        <!-- Live Area Name Card -->
+        <div id="area-card" class="glass-panel px-3 py-1.5 rounded-xl shadow-lg flex items-center justify-between text-xs text-slate-300">
+            <span class="flex items-center space-x-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                <span>Current Area: <strong id="current-area-name" class="text-emerald-400">Locating area...</strong></span>
             </span>
+            <span id="gps-status" class="text-[10px] bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30">GPS Ready</span>
         </div>
-        
-        <div class="flex items-center space-x-2">
-            <select id="langSelect" onchange="changeLanguage()" class="bg-slate-900 text-white text-xs px-2 py-1.5 rounded-lg border border-slate-600 focus:outline-none focus:border-blue-500 font-semibold cursor-pointer">
-                <option value="en">English</option>
-                <option value="hi">हिंदी</option>
-                <option value="ur">اردو</option>
-                <option value="es">Español</option>
-            </select>
+    </div>
 
-            <button onclick="shareApp()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-full font-semibold transition">
-                🔗 <span id="txt-share">Share</span>
-            </button>
-        </div>
-    </header>
-
-    <!-- Hidden Menu Drawer -->
-    <div id="sideMenu" class="hidden bg-slate-800 border border-slate-700 p-3 rounded-xl mb-2 text-sm">
-        <p class="font-bold text-emerald-400 mb-2">⚙️ Menu & Settings</p>
-        <ul class="space-y-1.5 text-xs text-slate-300">
-            <li class="cursor-pointer hover:text-white" onclick="alert('Coming soon: Saved Routes')">📁 Saved Routes</li>
-            <li class="cursor-pointer hover:text-white" onclick="alert('Coming soon: Offline Mode')">📶 Offline Mode</li>
-            <li class="cursor-pointer hover:text-white" onclick="alert('RouteBuddy Live v1.1 - Built by Eagle Network Sbz')">ℹ️ About App</li>
+    <!-- SIDE MENU DRAWER (Hidden by default) -->
+    <div id="sideMenu" class="absolute top-16 left-3 z-20 hidden glass-panel p-3 rounded-2xl shadow-2xl w-48 text-xs">
+        <p class="font-bold text-emerald-400 mb-2">⚙️ Menu Options</p>
+        <ul class="space-y-2 text-slate-300">
+            <li class="cursor-pointer hover:text-white" onclick="alert('RouteBuddy Live v1.2\nBy Eagle Network Sbz')">ℹ️ About App</li>
+            <li class="cursor-pointer hover:text-white" onclick="resetTrackingData()">🔄 Reset App Data</li>
         </ul>
     </div>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 flex flex-col justify-center items-center">
-        <div class="bg-slate-800 border border-slate-700 p-3 rounded-2xl shadow-2xl w-full max-w-md">
-            
-            <div class="grid grid-cols-2 gap-2 mb-2 bg-slate-900/80 p-2 rounded-xl border border-slate-700/60 text-xs">
-                <div class="flex items-center space-x-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                    <span class="text-slate-300 font-medium">GPS: <strong id="gps-status-text" class="text-emerald-400">Ready</strong></span>
-                </div>
-                <div class="text-right text-slate-400 font-medium">
-                    Mode: <strong class="text-blue-400">Walking 🚶‍♂️</strong>
-                </div>
+    <!-- BOTTOM FLOATING DASHBOARD (Circular & Modern UI) -->
+    <div class="absolute bottom-4 left-3 right-3 z-10 flex flex-col space-y-2">
+        
+        <!-- Stats Floating Pill -->
+        <div class="glass-panel p-3 rounded-2xl shadow-2xl grid grid-cols-2 gap-2 text-center">
+            <div class="border-r border-slate-700/60">
+                <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Distance Covered</span>
+                <strong id="total-distance" class="text-base text-emerald-400 font-bold">0.00 km</strong>
             </div>
-
-            <div class="flex justify-between items-center mb-2 px-1">
-                <span class="text-xs text-slate-400" id="txt-status-label">Status:</span>
-                <span id="status" class="text-xs bg-yellow-500 text-black px-2.5 py-0.5 rounded-full font-bold">Ready</span>
+            <div>
+                <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Speed</span>
+                <strong id="current-speed" class="text-base text-sky-400 font-bold">0 km/h</strong>
             </div>
+        </div>
 
-            <div class="mb-2">
-                <input type="text" id="destinationInput" placeholder="Where do you want to go?" class="w-full bg-slate-900 text-white p-2.5 rounded-xl border border-slate-700 text-sm mb-2 focus:outline-none focus:border-emerald-500">
-                <button onclick="searchDestination()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-semibold text-sm transition shadow-md flex justify-center items-center space-x-2">
-                    <span id="txt-search-btn">🔍 Find Destination</span>
-                </button>
-            </div>
-
-            <div id="map" class="mb-2 shadow-inner border border-slate-700"></div>
-
-            <div class="grid grid-cols-2 gap-2 mb-2 bg-slate-900 p-2.5 rounded-xl border border-slate-700 text-center">
-                <div>
-                    <span class="text-[10px] text-slate-400 block" id="txt-distance-label">Distance</span>
-                    <strong id="total-distance" class="text-sm text-emerald-400">0.00 km</strong>
-                </div>
-                <div>
-                    <span class="text-[10px] text-slate-400 block" id="txt-speed-label">Current Speed</span>
-                    <strong id="current-speed" class="text-sm text-sky-400">0 km/h</strong>
-                </div>
-            </div>
-
-            <button onclick="startTracking()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold transition shadow-lg mb-2 text-sm" id="txt-start-btn">
-                📍 Start Tracking
+        <!-- Circular Action Buttons Row -->
+        <div class="flex items-center justify-between space-x-2">
+            <button onclick="startTracking()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-2xl font-bold shadow-xl text-xs flex items-center justify-center space-x-1 transition active:scale-95">
+                <span>📍</span> <span>Start Track</span>
             </button>
-            <button onclick="stopTracking()" class="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-bold transition shadow-lg mb-2 text-sm" id="txt-stop-btn">
-                🛑 Stop Tracking
+            <button onclick="stopTracking()" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-2xl font-bold shadow-xl text-xs flex items-center justify-center space-x-1 transition active:scale-95">
+                <span>🛑</span> <span>Stop</span>
             </button>
-            <button onclick="resetTrackingData()" class="w-full bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-xl font-semibold transition text-xs" id="txt-reset-btn">
-                🔄 Reset
+            <button onclick="shareApp()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white p-3 rounded-2xl shadow-xl text-xs flex items-center justify-center transition active:scale-95" title="Share">
+                <span>🔗</span>
             </button>
         </div>
-    </main>
 
-    <!-- Adsterra Ad Unit Positioned Properly at Footer -->
-    <div class="w-full text-center my-2">
-        <script>
-          atOptions = {
-            'key' : 'c6dd80e26ba3d7e6fd584181c129c720',
-            'format' : 'iframe',
-            'height' : 60,
-            'width' : 468,
-            'params' : {}
-          };
-        </script>
-        <script src="https://www.highperformanceformat.com/c6dd80e26ba3d7e6fd584181c129c720/invoke.js"></script>
+        <!-- Tiny Footer Ad / Branding Inside Floating Area -->
+        <div class="text-center text-[10px] text-slate-400 pt-1">
+            <span>RouteBuddy Live © 2026 • Powered by Eagle Network Sbz</span>
+        </div>
     </div>
-
-    <!-- Footer -->
-    <footer class="text-center text-xs text-slate-400 mt-1 p-2 bg-slate-800 rounded-xl border border-slate-700">
-        <p>RouteBuddy Live © 2026 | Real-time Route Tracker</p>
-        <p class="text-emerald-400 font-semibold mt-1">⚡ Powered by Eagle Network Sbz</p>
-    </footer>
 
     <!-- Leaflet JS & App Logic -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        // Splash Screen Hide Logic
+        // Hide Splash Screen smoothly
         window.addEventListener('load', function() {
             setTimeout(function() {
                 const splash = document.getElementById('welcome-screen');
                 splash.style.opacity = '0';
-                setTimeout(function() {
-                    splash.style.display = 'none';
-                }, 800);
-            }, 2500);
+                setTimeout(() => splash.style.display = 'none', 800);
+            }, 2000);
         });
 
-        const translations = {
-            en: {
-                share: "Share",
-                statusLabel: "Status:",
-                statusReady: "Ready",
-                statusTracking: "Tracking Live...",
-                statusStopped: "Stopped",
-                searchPlaceholder: "Where do you want to go?",
-                searchBtn: "🔍 Find Destination",
-                startBtn: "📍 Start Tracking",
-                stopBtn: "🛑 Stop Tracking",
-                resetBtn: "🔄 Reset",
-                distanceLabel: "Distance",
-                speedLabel: "Current Speed",
-                alertNoQuery: "Please enter a destination name first!",
-                alertFound: "Destination found! Red pin shows the location.",
-                alertNotFound: "Destination not found, please enter a valid name.",
-                alertError: "Error finding destination. Please try again.",
-                alertGpsError: "Please allow location access: ",
-                alertNoGps: "Your browser does not support Geolocation.",
-                alertStopped: "Tracking has been stopped."
-            },
-            hi: {
-                share: "शेयर",
-                statusLabel: "स्थिति:",
-                statusReady: "तैयार",
-                statusTracking: "लाइव ट्रैक हो रहा है...",
-                statusStopped: "रुक गया",
-                searchPlaceholder: "कहाँ जाना है? जगह का नाम लिखें",
-                searchBtn: "🔍 रास्ता खोजें",
-                startBtn: "📍 ट्रैकिंग शुरू करें",
-                stopBtn: "🛑 ट्रैकिंग रोकें",
-                resetBtn: "🔄 रीसेट करें",
-                distanceLabel: "दूरी",
-                speedLabel: "वर्तमान गति",
-                alertNoQuery: "कृपया पहले किसी जगह का नाम लिखें!",
-                alertFound: "जगह मिल गई है! लाल पिन उस जगह को दिखा रहा है।",
-                alertNotFound: "जगह नहीं मिली, कृपया सही नाम लिखें।",
-                alertError: "खोजने में कुछ दिक्कत आई। कृपया दोबारा प्रयास करें।",
-                alertGpsError: "लोकेशन की अनुमति दें: ",
-                alertNoGps: "आपका ब्राउज़र Geolocation को सपोर्ट नहीं करता।",
-                alertStopped: "ट्रैकिंग रोक दी गई है।"
-            },
-            ur: {
-                share: "شیئر کریں",
-                statusLabel: "حالت:",
-                statusReady: "تیار",
-                statusTracking: "لائیو ٹریکنگ جاری ہے...",
-                statusStopped: "رک گیا",
-                searchPlaceholder: "کہاں جانا ہے؟ جگہ کا نام لکھیں",
-                searchBtn: "🔍 منزل تلاش کریں",
-                startBtn: "📍 ٹریکنگ شروع کریں",
-                stopBtn: "🛑 ٹریکنگ بند کریں",
-                resetBtn: "🔄 ری سیٹ کریں",
-                distanceLabel: "فاصلہ",
-                speedLabel: "موجودہ رفتار",
-                alertNoQuery: "براہ کرم پہلے کسی جگہ کا نام درج کریں!",
-                alertFound: "منزل مل گئی ہے! سرخ پن جگہ کو ظاہر کر رہا ہے۔",
-                alertNotFound: "منزل نہیں ملی، براہ کرم درست نام درج کریں۔",
-                alertError: "تلاش کرنے میں کچھ مسئلہ ہوا۔ دوبارہ کوشش کریں۔",
-                alertGpsError: "مقام کی اجازت دیں: ",
-                alertNoGps: "آپ کا براؤزر جیو لوکیشن کو سپورٹ نہیں کرتا۔",
-                alertStopped: "ٹریکنگ روک دی گئی ہے۔"
-            },
-            es: {
-                share: "Compartir",
-                statusLabel: "Estado:",
-                statusReady: "Listo",
-                statusTracking: "Rastreando En Vivo...",
-                statusStopped: "Detenido",
-                searchPlaceholder: "¿A dónde quieres ir?",
-                searchBtn: "🔍 Buscar Destino",
-                startBtn: "📍 Iniciar Rastreo",
-                stopBtn: "🛑 Detener Rastreo",
-                resetBtn: "🔄 Reiniciar",
-                distanceLabel: "Distancia",
-                speedLabel: "Velocidad Actual",
-                alertNoQuery: "¡Por favor ingresa un nombre de destino primero!",
-                alertFound: "¡Destino encontrado! El pin rojo muestra la ubicación.",
-                alertNotFound: "Destino no encontrado, ingresa un nombre válido.",
-                alertError: "Error al buscar el destino. Inténtalo de nuevo.",
-                alertGpsError: "Permite el acceso a la ubicación: ",
-                alertNoGps: "Tu navegador no admite geolocalización.",
-                alertStopped: "El rastreo se ha detenido."
-            }
-        };
-
-        let currentLang = 'en';
-
-        function changeLanguage() {
-            currentLang = document.getElementById('langSelect').value;
-            const t = translations[currentLang];
-
-            document.getElementById('txt-share').innerText = t.share;
-            document.getElementById('txt-status-label').innerText = t.statusLabel;
-            document.getElementById('destinationInput').placeholder = t.searchPlaceholder;
-            document.getElementById('txt-search-btn').innerText = t.searchBtn;
-            document.getElementById('txt-start-btn').innerText = t.startBtn;
-            document.getElementById('txt-stop-btn').innerText = t.stopBtn;
-            document.getElementById('txt-reset-btn').innerText = t.resetBtn;
-            document.getElementById('txt-distance-label').innerText = t.distanceLabel;
-            document.getElementById('txt-speed-label').innerText = t.speedLabel;
-            
-            const statusEl = document.getElementById('status');
-            if(statusEl.innerText === translations.en.statusReady || statusEl.innerText === translations.hi.statusReady || statusEl.innerText === translations.ur.statusReady || statusEl.innerText === translations.es.statusReady) {
-                statusEl.innerText = t.statusReady;
-            }
-        }
-
         function toggleMenu() {
-            const menu = document.getElementById('sideMenu');
-            menu.classList.toggle('hidden');
+            document.getElementById('sideMenu').classList.toggle('hidden');
         }
 
-        const map = L.map('map').setView([28.6139, 77.2090], 16);
+        // Initialize High-Res Clean Map (CartoDB Voyager for crisp, clean look)
+        const map = L.map('map', { zoomControl: false }).setView([28.6139, 77.2090], 16);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors & CARTO'
+            maxZoom: 20,
+            subdomains: 'abcd',
+            attribution: ''
         }).addTo(map);
 
         const personIcon = L.divIcon({
             className: 'moving-marker',
             html: '🚶‍♂️',
-            iconSize: [36, 36],
-            iconAnchor: [18, 18]
+            iconSize: [40, 40],
+            iconAnchor: [20, 20]
         });
 
         let latlngs = [];
         let totalDistance = 0;
-        let routeLine = L.polyline([], {color: '#10b981', weight: 6}).addTo(map);
+        let routeLine = L.polyline([], {color: '#2563eb', weight: 6, opacity: 0.8}).addTo(map);
         let watchId = null;
         let userMarker = null;
         let destMarker = null;
 
-        function loadSavedRoute() {
-            const savedData = localStorage.getItem('routebuddy_live_path');
-            if (savedData) {
-                try {
-                    latlngs = JSON.parse(savedData);
-                    if (latlngs.length > 0) {
-                        routeLine.setLatLngs(latlngs);
-                        totalDistance = parseFloat(localStorage.getItem('routebuddy_live_distance') || '0');
-                        document.getElementById('total-distance').innerText = totalDistance.toFixed(2) + ' km';
-                        map.setView(latlngs[latlngs.length - 1], 17);
-                        userMarker = L.marker(latlngs[latlngs.length - 1], { icon: personIcon }).addTo(map);
-                    }
-                } catch(e) {
-                    console.error("Error loading saved route", e);
+        // Load previous data if exists
+        const savedData = localStorage.getItem('routebuddy_live_path');
+        if (savedData) {
+            try {
+                latlngs = JSON.parse(savedData);
+                if (latlngs.length > 0) {
+                    routeLine.setLatLngs(latlngs);
+                    totalDistance = parseFloat(localStorage.getItem('routebuddy_live_distance') || '0');
+                    document.getElementById('total-distance').innerText = totalDistance.toFixed(2) + ' km';
+                    map.setView(latlngs[latlngs.length - 1], 17);
+                    userMarker = L.marker(latlngs[latlngs.length - 1], { icon: personIcon }).addTo(map);
                 }
-            }
+            } catch(e) {}
         }
 
-        loadSavedRoute();
-
         function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; 
+            const R = 6371;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = 
-                Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-                Math.sin(dLon/2) * Math.sin(dLon/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        // Reverse Geocoding to get real-time Area / Street Name
+        function updateAreaName(lat, lon) {
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=16`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.address) {
+                        const road = data.address.road || data.address.suburb || data.address.neighbourhood || data.address.city || "Current Location";
+                        const city = data.address.city || data.address.state_district || "";
+                        document.getElementById('current-area-name').innerText = road + (city ? ", " + city : "");
+                    }
+                }).catch(e => {});
         }
 
         function startTracking() {
-            const t = translations[currentLang];
             if (navigator.geolocation) {
-                document.getElementById('status').innerText = t.statusTracking;
-                document.getElementById('status').className = "text-xs bg-emerald-500 text-black px-2.5 py-0.5 rounded-full font-bold animate-pulse";
-                document.getElementById('gps-status-text').innerText = "Active";
+                document.getElementById('gps-status').innerText = "Tracking Live";
+                document.getElementById('gps-status').className = "text-[10px] bg-emerald-500 text-black font-bold px-2 py-0.5 rounded-full animate-pulse";
                 
                 watchId = navigator.geolocation.watchPosition(
                     (pos) => {
@@ -379,26 +222,25 @@
                         } else {
                             userMarker = L.marker(newLatLng, { icon: personIcon }).addTo(map);
                         }
+
+                        // Fetch area name periodically
+                        updateAreaName(lat, lng);
                     },
-                    (error) => {
-                        alert(t.alertGpsError + error.message);
-                    },
+                    (err) => alert("GPS Error: " + err.message),
                     { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
                 );
             } else {
-                alert(t.alertNoGps);
+                alert("Geolocation is not supported by your browser.");
             }
         }
 
         function stopTracking() {
-            const t = translations[currentLang];
             if (watchId !== null) {
                 navigator.geolocation.clearWatch(watchId);
                 watchId = null;
-                document.getElementById('status').innerText = t.statusStopped;
-                document.getElementById('status').className = "text-xs bg-red-500 text-white px-2.5 py-0.5 rounded-full font-bold";
-                document.getElementById('gps-status-text').innerText = "Stopped";
-                alert(t.alertStopped);
+                document.getElementById('gps-status').innerText = "Paused";
+                document.getElementById('gps-status').className = "text-[10px] bg-amber-500 text-black font-bold px-2 py-0.5 rounded-full";
+                alert("Tracking paused.");
             }
         }
 
@@ -409,21 +251,14 @@
         }
 
         function searchDestination() {
-            const t = translations[currentLang];
             const query = document.getElementById('destinationInput').value;
-            if(!query) {
-                alert(t.alertNoQuery);
-                return;
-            }
+            if(!query) return alert("Please enter a destination name!");
 
             fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data && data.length > 0) {
-                        const lat = data[0].lat;
-                        const lon = data[0].lon;
-                        const destLatLng = [lat, lon];
-
+                        const destLatLng = [data[0].lat, data[0].lon];
                         map.setView(destLatLng, 15);
                         
                         if (destMarker) {
@@ -434,31 +269,21 @@
                                     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
                                     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
                                     iconSize: [25, 41],
-                                    iconAnchor: [12, 41],
-                                    popupAnchor: [1, -34],
-                                    shadowSize: [41, 41]
+                                    iconAnchor: [12, 41]
                                 })
                             }).addTo(map);
                         }
-                        alert(t.alertFound);
                     } else {
-                        alert(t.alertNotFound);
+                        alert("Destination not found.");
                     }
-                })
-                .catch(err => {
-                    alert(t.alertError);
                 });
         }
 
         function shareApp() {
             if (navigator.share) {
-                navigator.share({
-                    title: 'RouteBuddy Live',
-                    text: 'Check out my live route tracker app RouteBuddy Live!',
-                    url: window.location.href,
-                }).catch((error) => console.log('Sharing failed', error));
+                navigator.share({ title: 'RouteBuddy Live', url: window.location.href });
             } else {
-                alert("Link: " + window.location.href);
+                alert("Link copied / URL: " + window.location.href);
             }
         }
     </script>
