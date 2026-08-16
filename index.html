@@ -3,8 +3,8 @@
 <head>
     <link rel="manifest" href="/manifest.json">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RouteBuddy Live - Fullscreen Navigation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>RouteBuddy Live</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -24,17 +24,31 @@
             from { width: 0%; }
             to { width: 100%; }
         }
-        /* Glassmorphism Floating UI Elements */
         .glass-panel {
             background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
+        /* Modern Floating Circular Elements */
+        .float-bubble {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            width: 75px;
+            height: 75px;
+            text-align: center;
+        }
     </style>
 </head>
 <body class="text-white">
 
-    <!-- Premium Dark Splash / Welcome Screen -->
+    <!-- Splash Screen -->
     <div id="welcome-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0b0f19; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999999; transition: opacity 0.8s ease;">
         <img src="https://i.postimg.cc/wBRs4cyt/IMG-20260814-WA0002.jpg" alt="Logo" style="width: 100px; height: 100px; border-radius: 24px; margin-bottom: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.7); border: 2px solid #2563eb;">
         <h1 style="color: #ffffff; font-size: 24px; font-weight: bold; margin: 0;">Route Buddy Live</h1>
@@ -48,7 +62,7 @@
     <!-- FULL SCREEN MAP -->
     <div id="map"></div>
 
-    <!-- TOP FLOATING BAR (Search & Area Name) -->
+    <!-- TOP SEARCH & AREA BAR -->
     <div class="absolute top-3 left-3 right-3 z-10 flex flex-col space-y-2">
         <div class="glass-panel p-2.5 rounded-2xl shadow-2xl flex items-center space-x-2">
             <button onclick="toggleMenu()" class="text-slate-300 hover:text-white p-1 focus:outline-none">
@@ -58,63 +72,60 @@
             <button onclick="searchDestination()" class="bg-blue-600 hover:bg-blue-700 text-xs px-3 py-2 rounded-xl font-semibold transition">🔍</button>
         </div>
 
-        <!-- Live Area Name Card -->
-        <div id="area-card" class="glass-panel px-3 py-1.5 rounded-xl shadow-lg flex items-center justify-between text-xs text-slate-300">
+        <div class="glass-panel px-3 py-1.5 rounded-xl shadow-lg flex items-center justify-between text-xs text-slate-300">
             <span class="flex items-center space-x-1.5">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                <span>Current Area: <strong id="current-area-name" class="text-emerald-400">Locating area...</strong></span>
+                <span>Area: <strong id="current-area-name" class="text-emerald-400">Locating...</strong></span>
             </span>
-            <span id="gps-status" class="text-[10px] bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30">GPS Ready</span>
+            <span id="gps-status" class="text-[10px] bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30">Ready</span>
         </div>
     </div>
 
-    <!-- SIDE MENU DRAWER (Hidden by default) -->
+    <!-- SIDE MENU -->
     <div id="sideMenu" class="absolute top-16 left-3 z-20 hidden glass-panel p-3 rounded-2xl shadow-2xl w-48 text-xs">
         <p class="font-bold text-emerald-400 mb-2">⚙️ Menu Options</p>
         <ul class="space-y-2 text-slate-300">
-            <li class="cursor-pointer hover:text-white" onclick="alert('RouteBuddy Live v1.2\nBy Eagle Network Sbz')">ℹ️ About App</li>
+            <li class="cursor-pointer hover:text-white" onclick="alert('RouteBuddy Live v1.3\nBy Eagle Network Sbz')">ℹ️ About App</li>
             <li class="cursor-pointer hover:text-white" onclick="resetTrackingData()">🔄 Reset App Data</li>
         </ul>
     </div>
 
-    <!-- BOTTOM FLOATING DASHBOARD (Circular & Modern UI) -->
-    <div class="absolute bottom-4 left-3 right-3 z-10 flex flex-col space-y-2">
+    <!-- RIGHT SIDE FLOATING CIRCULAR BUTTONS (As requested in your markers) -->
+    <div class="absolute right-4 bottom-24 z-10 flex flex-col space-y-3 items-end">
         
-        <!-- Stats Floating Pill -->
-        <div class="glass-panel p-3 rounded-2xl shadow-2xl grid grid-cols-2 gap-2 text-center">
-            <div class="border-r border-slate-700/60">
-                <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Distance Covered</span>
-                <strong id="total-distance" class="text-base text-emerald-400 font-bold">0.00 km</strong>
-            </div>
-            <div>
-                <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Speed</span>
-                <strong id="current-speed" class="text-base text-sky-400 font-bold">0 km/h</strong>
-            </div>
+        <!-- 1. SPEED BUBBLE (Marker 1 position) -->
+        <div class="float-bubble border-sky-500/40">
+            <span class="text-[9px] text-sky-400 font-bold uppercase">Speed</span>
+            <span id="current-speed" class="text-xs font-bold text-white">0 km/h</span>
         </div>
 
-        <!-- Circular Action Buttons Row -->
-        <div class="flex items-center justify-between space-x-2">
-            <button onclick="startTracking()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-2xl font-bold shadow-xl text-xs flex items-center justify-center space-x-1 transition active:scale-95">
-                <span>📍</span> <span>Start Track</span>
-            </button>
-            <button onclick="stopTracking()" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-2xl font-bold shadow-xl text-xs flex items-center justify-center space-x-1 transition active:scale-95">
-                <span>🛑</span> <span>Stop</span>
-            </button>
-            <button onclick="shareApp()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white p-3 rounded-2xl shadow-xl text-xs flex items-center justify-center transition active:scale-95" title="Share">
-                <span>🔗</span>
-            </button>
+        <!-- 2. DISTANCE BUBBLE (Marker 2 position) -->
+        <div class="float-bubble border-emerald-500/40">
+            <span class="text-[9px] text-emerald-400 font-bold uppercase">Distance</span>
+            <span id="total-distance" class="text-xs font-bold text-white">0.00 km</span>
         </div>
 
-        <!-- Tiny Footer Ad / Branding Inside Floating Area -->
-        <div class="text-center text-[10px] text-slate-400 pt-1">
-            <span>RouteBuddy Live © 2026 • Powered by Eagle Network Sbz</span>
-        </div>
+        <!-- 3. TOGGLE START/STOP BUTTON (Marker 3 position - Dynamic) -->
+        <button id="toggle-track-btn" onclick="toggleTracking()" class="w-16 h-16 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xl flex flex-col items-center justify-center font-bold text-xs transition active:scale-90 border-2 border-emerald-400">
+            <span>📍</span>
+            <span id="track-btn-text" class="text-[10px]">Start</span>
+        </button>
+
+        <!-- 4. RESET BUTTON (Marker 4 position - Bottom Right) -->
+        <button onclick="resetTrackingData()" class="w-14 h-14 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 shadow-2xl flex flex-col items-center justify-center font-bold text-[10px] transition active:scale-90 border border-slate-600" title="Reset">
+            <span>🔄</span>
+            <span>Reset</span>
+        </button>
+    </div>
+
+    <!-- Bottom Tiny Branding -->
+    <div class="absolute bottom-2 left-3 z-10 text-[9px] text-slate-500 font-medium">
+        RouteBuddy Live © 2026 • Eagle Network Sbz
     </div>
 
     <!-- Leaflet JS & App Logic -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        // Hide Splash Screen smoothly
         window.addEventListener('load', function() {
             setTimeout(function() {
                 const splash = document.getElementById('welcome-screen');
@@ -127,7 +138,6 @@
             document.getElementById('sideMenu').classList.toggle('hidden');
         }
 
-        // Initialize High-Res Clean Map (CartoDB Voyager for crisp, clean look)
         const map = L.map('map', { zoomControl: false }).setView([28.6139, 77.2090], 16);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             maxZoom: 20,
@@ -148,8 +158,8 @@
         let watchId = null;
         let userMarker = null;
         let destMarker = null;
+        let isTracking = false;
 
-        // Load previous data if exists
         const savedData = localStorage.getItem('routebuddy_live_path');
         if (savedData) {
             try {
@@ -172,7 +182,6 @@
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
 
-        // Reverse Geocoding to get real-time Area / Street Name
         function updateAreaName(lat, lon) {
             fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=16`)
                 .then(res => res.json())
@@ -185,9 +194,22 @@
                 }).catch(e => {});
         }
 
+        // Combined Single Button for Start & Stop
+        function toggleTracking() {
+            if (!isTracking) {
+                startTracking();
+            } else {
+                stopTracking();
+            }
+        }
+
         function startTracking() {
             if (navigator.geolocation) {
-                document.getElementById('gps-status').innerText = "Tracking Live";
+                isTracking = true;
+                const btn = document.getElementById('toggle-track-btn');
+                btn.className = "w-16 h-16 rounded-full bg-red-600 hover:bg-red-700 text-white shadow-2xl flex flex-col items-center justify-center font-bold text-xs transition active:scale-90 border-2 border-red-400";
+                document.getElementById('track-btn-text').innerText = "Stop";
+                document.getElementById('gps-status').innerText = "Live";
                 document.getElementById('gps-status').className = "text-[10px] bg-emerald-500 text-black font-bold px-2 py-0.5 rounded-full animate-pulse";
                 
                 watchId = navigator.geolocation.watchPosition(
@@ -223,7 +245,6 @@
                             userMarker = L.marker(newLatLng, { icon: personIcon }).addTo(map);
                         }
 
-                        // Fetch area name periodically
                         updateAreaName(lat, lng);
                     },
                     (err) => alert("GPS Error: " + err.message),
@@ -238,16 +259,21 @@
             if (watchId !== null) {
                 navigator.geolocation.clearWatch(watchId);
                 watchId = null;
-                document.getElementById('gps-status').innerText = "Paused";
-                document.getElementById('gps-status').className = "text-[10px] bg-amber-500 text-black font-bold px-2 py-0.5 rounded-full";
-                alert("Tracking paused.");
             }
+            isTracking = false;
+            const btn = document.getElementById('toggle-track-btn');
+            btn.className = "w-16 h-16 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xl flex flex-col items-center justify-center font-bold text-xs transition active:scale-90 border-2 border-emerald-400";
+            document.getElementById('track-btn-text').innerText = "Start";
+            document.getElementById('gps-status').innerText = "Paused";
+            document.getElementById('gps-status').className = "text-[10px] bg-amber-500 text-black font-bold px-2 py-0.5 rounded-full";
         }
 
         function resetTrackingData() {
-            localStorage.removeItem('routebuddy_live_path');
-            localStorage.removeItem('routebuddy_live_distance');
-            location.reload();
+            if(confirm("Do you want to reset all tracking data?")) {
+                localStorage.removeItem('routebuddy_live_path');
+                localStorage.removeItem('routebuddy_live_distance');
+                location.reload();
+            }
         }
 
         function searchDestination() {
@@ -277,14 +303,6 @@
                         alert("Destination not found.");
                     }
                 });
-        }
-
-        function shareApp() {
-            if (navigator.share) {
-                navigator.share({ title: 'RouteBuddy Live', url: window.location.href });
-            } else {
-                alert("Link copied / URL: " + window.location.href);
-            }
         }
     </script>
 </body>
